@@ -52,7 +52,7 @@ namespace JwtAuthentication.application.JwtToken
                 RefreshToken = refreshTokenValue,
                 AccessToken = accessToken,
                 RefreshTokenExpirationTime = now.AddMinutes(60),
-                AccessTokenExpirationTime = now.AddMinutes(2)
+                AccessTokenExpirationTime = now.AddMinutes(15)
             };
             using(var context = new ApplicationContext())
             {
@@ -115,10 +115,10 @@ namespace JwtAuthentication.application.JwtToken
                 //new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64, Issuer),
                 //new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString(), ClaimValueTypes.String, configuration.Issuer),
                 new Claim(ClaimTypes.Email, user.Email, ClaimValueTypes.String, Issuer),
-               // new Claim(ClaimTypes.Role,"User")
+                new Claim(ClaimTypes.Role,"Admin")
                 
             };
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+            var key = new SymmetricSecurityKey(Convert.FromBase64String(secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var now = DateTime.UtcNow;
             var token = new JwtSecurityToken(
@@ -126,11 +126,27 @@ namespace JwtAuthentication.application.JwtToken
                 audience: "My Audience",
                 claims: claims,
                 notBefore: now,
-                expires: now.AddMinutes(2),
+                expires: now.AddMinutes(15),
                 signingCredentials: creds);
             return (new JwtSecurityTokenHandler().WriteToken(token), claims);
         }
 
+        public bool ValidateAndDeleteRefreshToken(Func<UserToken, bool> predicate)
+        {
+            var isValid = false;
+            using(var context = new ApplicationContext())
+            {
+                var result = context.UserToken.FirstOrDefault(predicate);
+                if(result != null)
+                {
+                    context.UserToken.Remove(result);
+                    isValid = true;
+                }
+            }
+            return isValid;
+        }
+
+       
 
         }
     }

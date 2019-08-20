@@ -66,6 +66,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EndPoint\Login.cs" />
+    <Compile Include="EndPoint\MyProtectedApi.cs" />
+    <Compile Include="EndPoint\NewToken.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
